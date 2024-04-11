@@ -17,6 +17,8 @@ class Ship:
         self.moving_right = False
         self.moving_left = False
 
+
+        # Mother Ship
     def update(self):
         if self.moving_right and self.rect.right < self.screen_rect.right:
             self.x += self.settings.ship_speed
@@ -25,5 +27,10 @@ class Ship:
 
         self.rect.x = self.x
 
+    def centre_ship(self):
+        self.rect.midbottom = self.screen_rect.midbottom
+        self.x = float(self.rect.x)
+
     def blitme(self):
+        """Draw ship on the screen at specified rect"""
         self.screen.blit(self.image, self.rect)

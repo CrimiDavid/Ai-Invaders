@@ -17,8 +17,6 @@ class Ship:
         self.moving_right = False
         self.moving_left = False
 
-
-        # Mother Ship
     def update(self):
         if self.moving_right and self.rect.right < self.screen_rect.right:
             self.x += self.settings.ship_speed

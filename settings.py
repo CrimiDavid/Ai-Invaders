@@ -19,8 +19,25 @@ class Settings:
         self.alien_speed = 1.0
         self.fleet_drop_speed = 10
         self.fleet_direction = 1
+        self.alien_points = 100
 
         # Game stats
         self.lives = 3
 
+        # Difficulty
+        self.speed_scale = 1.1
 
+        self.initialize_dynamic_settings()
+
+    def initialize_dynamic_settings(self):
+        self.ship_speed = 1.5
+        self.bullet_speed = 2.5
+        self.alien_speed = 1.0
+
+        self.fleet_direction = 1
+
+    def increase_speed(self):
+        self.ship_speed *= self.speed_scale
+        self.bullet_speed *= self.speed_scale
+        self.alien_speed *= self.speed_scale
+        self.alien_points *= self.speed_scale

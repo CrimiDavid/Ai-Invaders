@@ -7,12 +7,14 @@ from ship import Ship
 from bullet import Bullet
 from alien import Alien
 from stats import Stats
+from scoreboard import Scoreboard
 
 
 class AlienInvasion:
 
     def __init__(self):
         pygame.init()
+        self.game_active = True
         self.clock = pygame.time.Clock()
         self.settings = Settings()
         # Game Screen setup
@@ -26,7 +28,7 @@ class AlienInvasion:
         self._create_fleet()
         # Stats
         self.stats = Stats(self)
-        self.game_active = True
+        self.score = Scoreboard(self)
 
     def run_game(self):
         """ Main loop """
@@ -81,6 +83,7 @@ class AlienInvasion:
 
         self.ship.blitme()
         self.aliens.draw(self.screen)
+        self.score.show_score()
 
         pygame.display.flip()  # This makes the visual output the player sees
 
@@ -101,7 +104,7 @@ class AlienInvasion:
             curr_y += 2 * alien_height
 
     def _change_fleet_direction(self):
-        """Lower fleet and change directions (helper funtion for "_check_fleet_edges")"""
+        """Lower fleet and change directions (helper function for "_check_fleet_edges")"""
         for alien in self.aliens:
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
@@ -143,11 +146,30 @@ class AlienInvasion:
         self._check_bullet_alien_collisions()
 
     def _check_bullet_alien_collisions(self):
-        collision = pygame.sprite.groupcollide(
-            self.bullets, self.aliens, True, True)
+        # Detect collisions between bullets and aliens
+        # The first True tells Pygame to delete the bullets upon collision
+        # The second True tells Pygame to delete the aliens upon collision
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+
+        # Check if there were any collisions
+        if collisions:
+            # Process each list of aliens that were hit by bullets
+            for aliens in collisions.values():
+                # Update the score based on the number of aliens hit
+                self.stats.score += self.settings.alien_points * len(aliens)
+            # Update the score display
+            self.score.prep_score()
+            # Check for new high scores
+            self.score.check_high_score()
+
+        # If all aliens are destroyed, reset the level
         if not self.aliens:
+            # Empty the group of bullets (clear remaining bullets)
             self.bullets.empty()
+            # Create a new fleet of aliens
             self._create_fleet()
+            # Increase the game speed for the next level
+            self.settings.increase_speed()
 
     def _ship_hit(self):
         if self.stats.ships_left > 0:
@@ -161,8 +183,23 @@ class AlienInvasion:
 
             sleep(1)
         else:
-            self.game_active = False
-            print("GAME OVER")
+            self.reset_game()  # Call the reset function when no lives are left
+
+    def reset_game(self):
+        print("GAME OVER - Resetting game...")
+
+        # Reset the game stats
+        self.stats.ships_left = self.settings.lives  # Reset lives to initial setting
+
+        self.bullets.empty()
+        self.aliens.empty()
+
+        self._create_fleet()
+        self.ship.centre_ship()
+        self.settings.initialize_dynamic_settings()
+        self.score.reset_score()
+
+        self.game_active = True  # Set the game to active state again
 
 
 if __name__ == '__main__':
